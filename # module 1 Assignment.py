@@ -19,3 +19,7 @@ if response.status_code == 200:
     print(df.head()) 
 else:
     print(f"Failed to fetch data. Status code: {response.status_code}")
+
+df['date'] = pd.to_datetime(df['date'])
+df.dropna(subset=['latitude', 'longitude'], inplace=True)
+print(df.info())
