@@ -1,6 +1,7 @@
 # module 1 assignment
 import requests
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # API endpoint for Chicago crime data
 url = "https://data.cityofchicago.org/resource/ijzp-q8t2.json"
@@ -23,3 +24,16 @@ else:
 df['date'] = pd.to_datetime(df['date'])
 df.dropna(subset=['latitude', 'longitude'], inplace=True)
 print(df.info())
+
+# Bar graph showing incidents by neighborhood
+incidents_by_neighborhood = df['community_area'].value_counts().head(10)
+
+# Plotting the bar graph
+plt.figure(figsize=(10, 6))
+incidents_by_neighborhood.plot(kind='bar', color='skyblue')
+plt.title('Top 10 Neighborhoods with the Highest Domestic Violence Incidents')
+plt.xlabel('Community Area')
+plt.ylabel('Number of Incidents')
+plt.xticks(rotation=45)
+plt.show()
+
