@@ -41,3 +41,9 @@ plt.show()
 # build network
 community_data = df.groupby('community_area').size().reset_index(name='incident_count')
 G = nx.Graph()
+
+for index, row in community_data.iterrows():
+    G.add_node(row['community_area'], size=row['incident_count'])
+    
+for i in range(len(community_data) - 1):
+    G.add_edge(community_data.iloc[i]['community_area'], community_data.iloc[i + 1]['community_area'])
