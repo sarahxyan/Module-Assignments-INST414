@@ -8,8 +8,6 @@ import networkx as nx
 # API endpoint for Chicago crime data
 url = "https://data.cityofchicago.org/resource/ijzp-q8t2.json"
 
-
-
 # filter for domestic violence incidents
 params = {
     "$where": "domestic = true",
@@ -32,6 +30,9 @@ print(df.info())
 community_area_df = pd.read_csv('community_area_names.csv')
 community_area_names = dict(zip(community_area_df['community_area'], community_area_df['community_area_name']))
 
+socioeconomic_data_df = pd.read_csv('socioeconomic_data.csv')
+
+
 if 'community_area' not in df.columns:
     print("Community area column not found. Please check the dataset for proper column names.")
 else:
@@ -44,6 +45,8 @@ if df['community_area_name'].isnull().sum() > 0:
     print(df[df['community_area_name'].isnull()].head())  # Print unmapped rows for debugging
 else:
     print("All community areas mapped successfully.")
+
+df = df.merge(socioeconomic_data_df, how='left', left_on='community_area_name', right_on='community_area')
 
 # Bar graph showing incidents by neighborhood
 incidents_by_neighborhood = df['community_area_name'].value_counts().head(10)
@@ -61,8 +64,15 @@ plt.show()
 community_data = df.groupby('community_area_name').size().reset_index(name='incident_count')
 G = nx.Graph()
 
-for index, row in community_data.iterrows():
-    G.add_node(row['community_area_name'], size=row['incident_count'])
+for index, row in socioeconomic_data_df.iterrows():
+    if row['community_area'] in community_data['community_area_name'].values:
+        incident_count = community_data.loc[community_data['community_area_name'] == row['community_area'], 'incident_count'].values[0]
+    else:
+        incident_count = 0  # Default to 0 incidents if the area has no records
+    
+    # Add the node with socioeconomic data
+    G.add_node(row['community_area'], size=incident_count,
+               income=row['income'], unemployment_rate=row['unemployment_rate'], hardship_index=row['hardship_index'])
 
 for i in range(len(community_data) - 1):
     G.add_edge(community_data.iloc[i]['community_area_name'], community_data.iloc[i + 1]['community_area_name'])
@@ -71,15 +81,15 @@ degree_centrality = nx.degree_centrality(G)
 betweenness_centrality = nx.betweenness_centrality(G)
 closeness_centrality = nx.closeness_centrality(G)
 
-# Find top 3 important nodes by betweenness centrality
 important_nodes = sorted(betweenness_centrality.items(), key=lambda x: x[1], reverse=True)[:3]
 print("Top 3 Important Nodes by Betweenness Centrality: ", important_nodes)
 
 # Visualizing the Network
 plt.figure(figsize=(12, 10)) 
-pos = nx.spring_layout(G, k=0.3, seed=42)  
-node_size = [G.nodes[node]['size'] * 10 for node in G.nodes]  
+node_size = [G.nodes[node].get('size', 1) * 10 for node in G.nodes]  
+
+pos = nx.spring_layout(G, k=0.3, seed=42)  # Using spring layout for better spacing
 nx.draw_networkx(G, pos, with_labels=True, node_size=node_size, node_color='skyblue', edge_color='gray', font_size=10)
 
-plt.title('Domestic Violence Network of Chicago Neighborhoods (Spring Layout)')
+plt.title('Domestic Violence Network of Chicago Neighborhoods with Socioeconomic Data')
 plt.show()
