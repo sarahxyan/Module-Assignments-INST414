@@ -2,6 +2,7 @@
 import requests
 import pandas as pd
 import matplotlib.pyplot as plt
+import networkx as nx
 
 # API endpoint for Chicago crime data
 url = "https://data.cityofchicago.org/resource/ijzp-q8t2.json"
@@ -37,3 +38,6 @@ plt.ylabel('Number of Incidents')
 plt.xticks(rotation=45)
 plt.show()
 
+# build network
+community_data = df.groupby('community_area').size().reset_index(name='incident_count')
+G = nx.Graph()
