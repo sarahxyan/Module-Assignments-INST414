@@ -76,7 +76,8 @@ important_nodes = sorted(betweenness_centrality.items(), key=lambda x: x[1], rev
 print("Top 3 Important Nodes by Betweenness Centrality: ", important_nodes)
 
 # Visualizing the Network
-plt.figure(figsize=(10, 8))
+plt.figure(figsize=(12, 10))
+pos = nx.spring_layout(G, k=1.5, seed=42)
 node_size = [G.nodes[node]['size'] * 10 for node in G.nodes]  # Size nodes based on incident counts
 nx.draw_networkx(G, with_labels=True, node_size=node_size, node_color='skyblue', edge_color='gray', font_size=10)
 plt.title('Domestic Violence Network of Chicago Neighborhoods')
