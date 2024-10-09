@@ -2,12 +2,18 @@
 
 import pandas as pd
 import numpy as np
+import requests
 import matplotlib.pyplot as plt
+import networkx as nx
 
-dv_data = pd.read_csv('community_area_names.csv')
-socioeconomic_data = pd.read_csv('socioeconomic_data.csv')
 
-dv_data['community_area'] = dv_data['community_area'].astype(str)
-socioeconomic_data['community_area'] = socioeconomic_data['community_area'].astype(str)
+url = "https://data.cityofchicago.org/resource/ijzp-q8t2.json"
 
-merged_df = dv_data.merge(socioeconomic_data, how='left', on='community_area')
+params = {
+    "$where": "domestic = true",
+    "$limit": 5000  
+}
+
+response = requests.get(url, params=params)
+data = response.json()
+dv_data = pd.DataFrame(data)
