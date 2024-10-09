@@ -49,12 +49,12 @@ else:
 incidents_by_neighborhood = df['community_area_name'].value_counts().head(10)
 
 # Plotting the bar graph
-plt.figure(figsize=(8, 4))
+plt.figure(figsize=(10,12))
 incidents_by_neighborhood.plot(kind='bar', color='skyblue')
-plt.title('Top 10 Neighborhoods with the Highest Domestic Violence Incidents')
+plt.title('Top 10 Neighborhoods in Chicago with the Highest Domestic Violence Incidents')
 plt.xlabel('Community Area')
 plt.ylabel('Number of Incidents')
-plt.xticks(rotation=45)
+plt.xticks(rotation=30)
 plt.show()
 
 # build network
@@ -76,10 +76,10 @@ important_nodes = sorted(betweenness_centrality.items(), key=lambda x: x[1], rev
 print("Top 3 Important Nodes by Betweenness Centrality: ", important_nodes)
 
 # Visualizing the Network
-plt.figure(figsize=(12, 10))
-pos = nx.spring_layout(G, k=1.5, seed=42)
-node_size = [G.nodes[node]['size'] * 10 for node in G.nodes]  # Size nodes based on incident counts
-nx.draw_networkx(G, with_labels=True, node_size=node_size, node_color='skyblue', edge_color='gray', font_size=10)
-plt.title('Domestic Violence Network of Chicago Neighborhoods')
-plt.show()
+plt.figure(figsize=(12, 10)) 
+pos = nx.spring_layout(G, k=0.3, seed=42)  
+node_size = [G.nodes[node]['size'] * 10 for node in G.nodes]  
+nx.draw_networkx(G, pos, with_labels=True, node_size=node_size, node_color='skyblue', edge_color='gray', font_size=10)
 
+plt.title('Domestic Violence Network of Chicago Neighborhoods (Spring Layout)')
+plt.show()
