@@ -1,34 +1,33 @@
-# module 3 Assignment
-
 import pandas as pd
 import numpy as np
-import requests
-import matplotlib.pyplot as plt
-import networkx as nx
 
 
-url = "https://data.cityofchicago.org/resource/ijzp-q8t2.json"
-
-params = {
-    "$where": "domestic = true",
-    "$limit": 5000  
-}
-
-response = requests.get(url, params=params)
-data = response.json()
-dv_data = pd.DataFrame(data)
-
-dv_data['community_area'] = pd.to_numeric(dv_data['community_area'], errors='coerce')
-dv_data.dropna(subset=['community_area'], inplace=True)
 socioeconomic_data = pd.read_csv('socioeconomic_data.csv')
-socioeconomic_data['community_area'] = pd.to_numeric(socioeconomic_data['community_area'], errors='coerce')
-incident_counts = dv_data.groupby('community_area').size().reset_index(name='incident_count')
+community_area_names = pd.read_csv('community_area_names.csv')
 
-merged_df = pd.merge(socioeconomic_data, incident_counts, on='community_area', how='left')
-features = ['incident_count', 'income', 'unemployment_rate', 'hardship_index']
+merged_data = pd.merge(socioeconomic_data, community_area_names, left_on="community_area", right_on="community_area_name")
 
-def normalize_column(column):
-    return (column - column.min()) / (column.max() - column.min())
+features = ['income', 'unemployment_rate', 'hardship_index']
+X = merged_data[features].to_numpy()
 
-for feature in features:
-    merged_df[feature] = normalize_column(merged_df[feature])
+def euclidean_distance(v1, v2):
+    return np.sqrt(np.sum((v1 - v2) ** 2))
+
+distance_matrix = np.zeros((X.shape[0], X.shape[0]))
+
+for i in range(X.shape[0]):
+    for j in range(X.shape[0]):
+        distance_matrix[i, j] = euclidean_distance(X[i], X[j])
+
+distance_df = pd.DataFrame(distance_matrix, index=merged_data['community_area_name'], columns=merged_data['community_area_name'])
+
+def get_top_similar_neighborhoods(query_name, distance_matrix, top_n=10):
+    similar_neighborhoods = distance_matrix[query_name].sort_values()[1:top_n+1] 
+    return similar_neighborhoods
+
+query_neighborhoods = ['Rogers Park', 'West Ridge', 'Uptown']
+
+for query in query_neighborhoods:
+    print(f"Top 10 neighborhoods most similar to {query}:")
+    print(get_top_similar_neighborhoods(query, distance_df))
+    print("\n" + "-"*50 + "\n")
